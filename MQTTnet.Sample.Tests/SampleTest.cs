@@ -1,6 +1,5 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MQTTnet.Client;
-using MQTTnet.Client.Options;
 using MQTTnet.Protocol;
 using MQTTnet.Server;
 using System.Text;
