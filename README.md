@@ -1,9 +1,4 @@
 # MQTTnet.Sample
-Sample code to show how to run the code.
-
-## Project : 
-
-#### MQTTnet.Sample.Tests : 
 
 Show the simple way to create a MQTT Server, publisher client and subscriber client.
 
@@ -12,6 +7,8 @@ And How to publish and receive message between two clients.
 ## About MQTT : 
 
 https://swf.com.tw/?p=1002 (Chinese)
+
+https://swf.com.tw/?p=1015 (Chinese, about MQTT quality)
 
 ## Tutorial : 
 
