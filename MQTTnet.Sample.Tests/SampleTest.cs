@@ -16,34 +16,35 @@ namespace MQTTnet.Sample.Tests
         [TestMethod]
         public async Task Sample()
         {
-            //Create a topic and connect quality
+            //Sending properties
             var topic = "andy840119/iot";
             var quality = MqttQualityOfServiceLevel.AtLeastOnce;
             var sendByte = Encoding.UTF8.GetBytes("Hello MQTT!");
             var shouldNotSendByte = Encoding.UTF8.GetBytes("Don't receive MQTT!");
             
-            //Receive Message(check)
+            //Receive Properties(check)
             var receiveMessage = new byte[0];
             var sendTries = 0;
 
-            //Start and run a server
+            //Run a MQTT Server
             var server = new MqttFactory().CreateMqttServer();
             await server.StartAsync(new MqttServerOptions());
 
-            //Create a publish client
+            //Run a MQTT publish client
             var publishClient = new MqttFactory().CreateMqttClient();
             await publishClient.ConnectAsync(new MqttClientOptionsBuilder().WithTcpServer(ServerAddress).Build());
 
-            //Create a receive client
+            //Run a MQTT receive client
             var receniveClient = new MqttFactory().CreateMqttClient();
             await receniveClient.ConnectAsync(new MqttClientOptionsBuilder().WithTcpServer(ServerAddress).Build());
             receniveClient.ApplicationMessageReceived += (object o, MqttApplicationMessageReceivedEventArgs e) =>
             { 
+                //Record received message.
                 receiveMessage = e.ApplicationMessage.Payload;
                 sendTries ++;
             };
 
-            //Receive client subscribe the topic
+            //Receive client subscribe a topic
             await receniveClient.SubscribeAsync(new TopicFilterBuilder().WithTopic(topic).WithQualityOfServiceLevel(quality).Build());
 
             //Publish Client send a message
@@ -54,17 +55,19 @@ namespace MQTTnet.Sample.Tests
                     Payload = sendByte,
                 });
 
+            //Wait
             await Task.Delay(500);
 
-            //send message and receive message should be equal
+            //Check receive client get mesage
             Assert.IsTrue(Equality(sendByte,receiveMessage));
 
-            //UnSubscribe topic
+            //Receive client unSubscribe topic
             await receniveClient.UnsubscribeAsync(topic);
 
+            //Wait
             await Task.Delay(500);
 
-            //Publish Client send a message (this message should not be received.)
+            //Publish Client send a message. (this message should not be received.)
             await publishClient.PublishAsync(new MqttApplicationMessage()
                 { 
                     Topic = topic,
@@ -72,9 +75,10 @@ namespace MQTTnet.Sample.Tests
                     Payload = shouldNotSendByte,
                 });
 
+            //Wait
             await Task.Delay(500);
 
-            //Check not received
+            //Check receive client not get message
             Assert.IsFalse(Equality(shouldNotSendByte,receiveMessage));
         }
 
