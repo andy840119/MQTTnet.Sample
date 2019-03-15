@@ -29,16 +29,19 @@ namespace MQTTnet.Sample.Server
                 //Record received message.
                 var receiveBytes = e.ApplicationMessage.Payload;
                 var receiveMessage = Encoding.UTF8.GetString(receiveBytes);
-                
+
+                Console.WriteLine("Message received :");
                 Console.WriteLine(receiveMessage);
             };
 
             //Receive client subscribe a topic
             await receniveClient.SubscribeAsync(new TopicFilterBuilder().WithTopic(topic).WithQualityOfServiceLevel(quality).Build());
 
-            //Prevent server stop
-            Console.WriteLine("Enter to stop");
-            Console.ReadLine();
+            //Just prevent console close
+            while(true)
+            { 
+                await Task.Delay(10);
+            }
         }
     }
 }
