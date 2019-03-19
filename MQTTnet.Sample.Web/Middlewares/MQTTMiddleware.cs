@@ -29,7 +29,7 @@ namespace MQTTnet.Sample.Web.Middlewares
         {
             _next = next;
 
-            //initial MQTT server
+            //Initial MQTT server
             var result = Task.Run(
             async () =>
                 {
@@ -40,16 +40,17 @@ namespace MQTTnet.Sample.Web.Middlewares
  
         public async Task Invoke(HttpContext context)
         {
+            //Break if is not Websocket
             if (!context.WebSockets.IsWebSocketRequest)
             {
                 await _next.Invoke(context);
                 return;
             }
  
+            //Get and save Websocket connection into list
             CancellationToken ct = context.RequestAborted;
             WebSocket currentSocket = await context.WebSockets.AcceptWebSocketAsync();
             var socketId = Guid.NewGuid().ToString();
- 
             _sockets.TryAdd(socketId, currentSocket);
  
             while (true)
@@ -59,31 +60,39 @@ namespace MQTTnet.Sample.Web.Middlewares
                     break;
                 }
  
-                //receive message
+                //Waiting to receive message from Websocket
                 var response = await ReceiveStringAsync(currentSocket, ct);
                 if(string.IsNullOrEmpty(response))
                 {
-                    //if message is close socket
                     if(currentSocket.State != WebSocketState.Open)
                     {
+                        //Break the loop and close the socket
                         break;
                     }
+
+                    //Do not send the message
                     continue;
                 }
  
-                //send message to everyone
+                //Send message to evety connected client
                 await SendMessageToEveryConnectUser(response,ct);
             }
  
+            //Remove disconnected client from list
             WebSocket dummy;
             _sockets.TryRemove(socketId, out dummy);
  
+            //Close websocket
             await currentSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", ct);
             currentSocket.Dispose();
         }
 
         #region MQTT
 
+        /// <summary>
+        /// Initialize MQTT
+        /// </summary>
+        /// <returns></returns>
         private async Task InitialMQTTServer()
         { 
             //Sending properties
@@ -123,6 +132,12 @@ namespace MQTTnet.Sample.Web.Middlewares
 
         #region Message
 
+        /// <summary>
+        /// Send message to every connected user
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
         private async Task SendMessageToEveryConnectUser(string message,CancellationToken ct)
         { 
             foreach (var socket in _sockets)
@@ -136,6 +151,13 @@ namespace MQTTnet.Sample.Web.Middlewares
             }
         }
  
+        /// <summary>
+        /// Send message to WebSocket client
+        /// </summary>
+        /// <param name="socket"></param>
+        /// <param name="data"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
         private Task SendStringAsync(WebSocket socket, string data, CancellationToken ct = default(CancellationToken))
         {
             var buffer = Encoding.UTF8.GetBytes(data);
@@ -143,6 +165,12 @@ namespace MQTTnet.Sample.Web.Middlewares
             return socket.SendAsync(segment, WebSocketMessageType.Text, true, ct);
         }
  
+        /// <summary>
+        /// Receive message from WebSocket client
+        /// </summary>
+        /// <param name="socket"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
         private async Task<string> ReceiveStringAsync(WebSocket socket, CancellationToken ct = default(CancellationToken))
         {
             var buffer = new ArraySegment<byte>(new byte[8192]);
