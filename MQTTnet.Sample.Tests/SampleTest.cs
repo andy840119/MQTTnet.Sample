@@ -77,6 +77,9 @@ namespace MQTTnet.Sample.Tests
 
             //Check receive client not get message
             Assert.IsFalse(Equality(shouldNotSendByte,receiveMessage));
+
+            //Close server
+            await server.StopAsync();
         }
     }
 }

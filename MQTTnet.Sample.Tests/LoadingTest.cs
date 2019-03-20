@@ -74,8 +74,18 @@ namespace MQTTnet.Sample.Tests
                     Assert.AreEqual(-1,i);
             }
 
+            Console.WriteLine($"Total receive : {receiveIndexes.Count}");
+
             //Success
             Assert.IsTrue(true);
+            
+            //stop server
+            await receniveClient.DisconnectAsync();
+            foreach(var publisher in publishers)
+            { 
+                await publisher.DisconnectAsync();
+            }
+            await server.StopAsync();
         }
     }
 }
