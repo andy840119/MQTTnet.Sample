@@ -8,10 +8,8 @@ using System.Threading.Tasks;
 namespace MQTTnet.Sample.Tests
 {
     [TestClass]
-    public class SampleTest
+    public class SampleTest : BaseTest
     {
-        protected string ServerAddress => "localhost";
-
         [TestMethod]
         public async Task Sample()
         {
@@ -79,31 +77,6 @@ namespace MQTTnet.Sample.Tests
 
             //Check receive client not get message
             Assert.IsFalse(Equality(shouldNotSendByte,receiveMessage));
-        }
-
-        /// <summary>
-        /// Check Bytes array are equal.
-        /// </summary>
-        /// <param name="a1"></param>
-        /// <param name="b1"></param>
-        /// <returns></returns>
-        public bool Equality(byte[] a1, byte[] b1)
-        {
-           int i;
-           if (a1.Length == b1.Length)
-           {
-              i = 0;
-              while (i < a1.Length && (a1[i]==b1[i])) //Earlier it was a1[i]!=b1[i]
-              {
-                  i++;
-              }
-              if (i == a1.Length)
-              {
-                  return true;
-              }
-           }
-
-           return false;
         }
     }
 }
