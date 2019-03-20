@@ -20,6 +20,10 @@ namespace MQTTnet.Sample.Tests
             //send tries
             var sendTries = 10;
 
+            //Add extra message
+            var extraMessage = "oiservtionseopteoprvtwetnuioertrptuiweptprovirtuoeriopvtwuipertnoweuioertuvpert" +
+                "uwpoerutvipetnwueiroprtuipwueotuweioprtuowpetuioueroptuwvoenutwewepvtornutoivweweirvtuepr";
+
             //Run a MQTT Server
             var server = new MqttFactory().CreateMqttServer();
             await server.StartAsync(new MqttServerOptions());
@@ -40,7 +44,8 @@ namespace MQTTnet.Sample.Tests
             await receniveClient.ConnectAsync(new MqttClientOptionsBuilder().WithTcpServer(ServerAddress).Build());
             receniveClient.ApplicationMessageReceived += (object o, MqttApplicationMessageReceivedEventArgs e) =>
             { 
-                var receiveIndex = int.Parse(Encoding.UTF8.GetString(e.ApplicationMessage.Payload));
+                var receiveMessage = Encoding.UTF8.GetString(e.ApplicationMessage.Payload);
+                var receiveIndex = int.Parse(receiveMessage.Replace(extraMessage,""));
                 receiveIndexes.Add(receiveIndex);
             };
 
@@ -59,7 +64,7 @@ namespace MQTTnet.Sample.Tests
                         { 
                             Topic = Topic,
                             QualityOfServiceLevel = ConnectQuality,
-                            Payload = Encoding.UTF8.GetBytes(index.ToString()),
+                            Payload = Encoding.UTF8.GetBytes(index.ToString() + extraMessage),
                         });
                 }
             }
