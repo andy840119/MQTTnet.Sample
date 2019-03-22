@@ -97,6 +97,7 @@ namespace MQTTnet.Sample.Web.Middlewares
         { 
             //Sending properties
             var topic = "andy840119/iot";
+            var binaryTopic = "andy840119/iot_binary";
             var quality = MqttQualityOfServiceLevel.AtLeastOnce;
 
             //Run a MQTT Server
@@ -107,25 +108,39 @@ namespace MQTTnet.Sample.Web.Middlewares
             var receniveClient = new MqttFactory().CreateMqttClient();
             await receniveClient.ConnectAsync(new MqttClientOptionsBuilder().WithTcpServer(ServerAddress).Build());
             receniveClient.ApplicationMessageReceived += (object o, MqttApplicationMessageReceivedEventArgs e) =>
-            { 
+            {
                 //Record received message.
                 var receiveBytes = e.ApplicationMessage.Payload;
-                var receiveMessage = Encoding.UTF8.GetString(receiveBytes);
+                var receiveTopic = e.ApplicationMessage.Topic;
+                if (receiveTopic == topic)
+                {
+                    var receiveMessage = Encoding.UTF8.GetString(receiveBytes);
 
+                    Console.WriteLine("Message received :");
+                    Console.WriteLine(receiveMessage);
 
-                Console.WriteLine("Message received :");
-                Console.WriteLine(receiveMessage);
-
-                var result = Task.Run(
-                async () =>
+                    var result = Task.Run(
+                    async () =>
                     {
-                        await SendMessageToEveryConnectUser(receiveMessage,default(CancellationToken));
+                        await SendMessageToEveryConnectUser(receiveMessage, default(CancellationToken));
                     });
-                result.Wait();
+                    result.Wait();
+                }
+                else if (receiveTopic == binaryTopic)
+                {
+                    Console.WriteLine("Binary file received :");
+                    var result = Task.Run(
+                    async () =>
+                    {
+                        await SendBinaryToEveryConnectUser(receiveBytes, default(CancellationToken));
+                    });
+                    result.Wait();
+                }
             };
 
             //Receive client subscribe a topic
             await receniveClient.SubscribeAsync(new TopicFilterBuilder().WithTopic(topic).WithQualityOfServiceLevel(quality).Build());
+            await receniveClient.SubscribeAsync(new TopicFilterBuilder().WithTopic(binaryTopic).WithQualityOfServiceLevel(quality).Build());
         }
 
         #endregion
@@ -146,11 +161,28 @@ namespace MQTTnet.Sample.Web.Middlewares
                 {
                     continue;
                 }
- 
                 await SendStringAsync(socket.Value, message, ct);
             }
         }
- 
+
+        /// <summary>
+        /// Send message to every connected user
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        private async Task SendBinaryToEveryConnectUser(byte[] data, CancellationToken ct)
+        {
+            foreach (var socket in _sockets)
+            {
+                if (socket.Value.State != WebSocketState.Open)
+                {
+                    continue;
+                }
+                await SendBinaryAsync(socket.Value, data, ct);
+            }
+        }
+
         /// <summary>
         /// Send message to WebSocket client
         /// </summary>
@@ -164,7 +196,20 @@ namespace MQTTnet.Sample.Web.Middlewares
             var segment = new ArraySegment<byte>(buffer);
             return socket.SendAsync(segment, WebSocketMessageType.Text, true, ct);
         }
- 
+
+        /// <summary>
+        /// Send message to WebSocket client
+        /// </summary>
+        /// <param name="socket"></param>
+        /// <param name="data"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        private Task SendBinaryAsync(WebSocket socket, byte[] data, CancellationToken ct = default(CancellationToken))
+        {
+            var segment = new ArraySegment<byte>(data);
+            return socket.SendAsync(segment, WebSocketMessageType.Binary, true, ct);
+        }
+
         /// <summary>
         /// Receive message from WebSocket client
         /// </summary>
