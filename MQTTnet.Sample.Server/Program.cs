@@ -20,8 +20,17 @@ namespace MQTTnet.Sample.Server
             //Run a MQTT Server
             var server = new MqttFactory().CreateMqttServer();
             await server.StartAsync(new MqttServerOptions());
+            server.ClientConnected += (a,b)=>
+            {
+                Console.WriteLine($"Client connect ({b.ClientId}) :");
+            };
+            server.ClientDisconnected += (a,b)=>
+            {
+                Console.WriteLine($"Client disconnect ({b.ClientId}) :");
+            };
 
             //Run a MQTT receive client
+            var receiveCount = 0;
             var receniveClient = new MqttFactory().CreateMqttClient();
             await receniveClient.ConnectAsync(new MqttClientOptionsBuilder().WithTcpServer(ServerAddress).Build());
             receniveClient.ApplicationMessageReceived += (object o, MqttApplicationMessageReceivedEventArgs e) =>
@@ -30,8 +39,10 @@ namespace MQTTnet.Sample.Server
                 var receiveBytes = e.ApplicationMessage.Payload;
                 var receiveMessage = Encoding.UTF8.GetString(receiveBytes);
 
-                Console.WriteLine("Message received :");
+                Console.WriteLine($"Message received ({receiveCount}) :");
                 Console.WriteLine(receiveMessage);
+
+                receiveCount ++;
             };
 
             //Receive client subscribe a topic
