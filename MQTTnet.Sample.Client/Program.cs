@@ -29,8 +29,8 @@ namespace MQTTnet.Sample.Client
                 //Note : send binary file
                 if (line == "-b")
                 {
-                    var file = File.ReadAllBytes("Resource/sample_image_001.jpg");
-                    Console.WriteLine("Binart file sent : ");
+                    var file = File.ReadAllBytes("Resource/sample_image_002.jpg");
+                    Console.WriteLine("Binary file sent : ");
                     await publishClient.PublishAsync(new MqttApplicationMessage()
                     {
                         Topic = "andy840119/iot_binary",
