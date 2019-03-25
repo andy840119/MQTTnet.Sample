@@ -206,8 +206,10 @@ namespace MQTTnet.Sample.Web.Middlewares
         /// <returns></returns>
         private Task SendBinaryAsync(WebSocket socket, byte[] data, CancellationToken ct = default(CancellationToken))
         {
-            var segment = new ArraySegment<byte>(data);
-            return socket.SendAsync(segment, WebSocketMessageType.Binary, true, ct);
+            var bashString = Convert.ToBase64String(data);
+            return SendStringAsync(socket, bashString, ct);
+            //var segment = new ArraySegment<byte>(data);
+            //return socket.SendAsync(segment, WebSocketMessageType.Binary, true, ct);
         }
 
         /// <summary>

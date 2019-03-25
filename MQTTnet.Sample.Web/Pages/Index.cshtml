@@ -122,8 +122,15 @@
             socket.onmessage = function (event) {
                 commsLog.innerHTML += '<tr>' +
                     '<td class="commslog-server">Server</td>' +
-                    '<td class="commslog-client">Client</td>' +
-                    '<td class="commslog-data">' + htmlEscape(event.data) + '</td></tr>';
+                    '<td class="commslog-client">Client</td>';
+
+                console.log(typeof (event.data));
+                if (event.data.length < 100) {
+                    commsLog.innerHTML += '<td class="commslog-data">' + htmlEscape(event.data) + '</td></tr>';
+                }
+                else {
+                    commsLog.innerHTML += '<img src="' + convertImageData(event.data) + '"></img>';
+                }
             };
         };
         function htmlEscape(str) {
@@ -133,6 +140,13 @@
                 .replace(/'/g, '&#39;')
                 .replace(/</g, '&lt;')
                 .replace(/>/g, '&gt;');
-        }
+        };
+        //See : https://stackoverflow.com/questions/11089732/display-image-from-blob-using-javascript-and-websockets/11092371
+        function convertImageData(data) {
+            //console.log(window.btoa(str));
+            var result = 'data:image/jpge;base64, ' + data;
+            return result;
+
+        };
     </script>
 </div>
